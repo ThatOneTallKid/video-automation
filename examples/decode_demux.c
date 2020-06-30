@@ -114,6 +114,90 @@ static int decode_packet(AVCodecContext *Pack, AVPacket * pkt){
   }
   return 0;
 }
+
+static int open_coded_context(int *stream_idx, AVCodecContext **dec_ctx,
+                              AVFormatContext *fmt_cntx,
+                            enum AVMediaType type)
+{
+      int response, stream_index;
+      AVStream *st;
+      AVCodec *dec = NULL;
+      AVDictionary *opts = NULL;
+
+      response = av_find_best_stream(fmt_contx, type, -1, -1, NULL, 0);
+      if (response < 0){
+        fprintf(stderr, "Could not find %s stream in input file '%s'\n",
+                av_get_media_type_string(type), src_filename);
+        return response;
+
+      } else {
+        stream_index = response;
+        st = fmt_cntx->streams[stream_index];
+
+        /* find decoder for the stream */
+        dec = avcodec_find_decoder(st->codecpar->codec_id);
+        if(!dec) {
+          fprintf(stderr, "Failed to find %s codec\n",
+                  av_get_media_type_string(type));
+
+        return AVERROE(EINVAL);
+        }
+
+        /* Allocate a codec context for the decoder */
+        *dec_ctx = avcodec_alloc_context3(dec);
+        if (!*dec_ctx) {
+            fprintf(stderr, "Failed to allocate the %s codec context\n",
+                    av_get_media_type_string(type));
+            return AVERROR(ENOMEM);
+        }
+
+        /* Copy codec parameters from input stream to output codec context */
+        if ((response = avcodec_parameters_to_context(*dec_ctx, st->codecpar)) < 0) {
+            fprintf(stderr, "Failed to copy %s codec parameters to decoder context\n",
+                    av_get_media_type_string(type));
+            return response;
+        }
+
+        /* Init the decoders */
+        if ((response = avcodec_open2(*dec_ctx, dec, &opts)) < 0) {
+            fprintf(stderr, "Failed to open %s codec\n",
+                    av_get_media_type_string(type));
+            return response;
+        }
+        *stream_idx = stream_index;
+      }
+
+      return 0;
+}
+static int get_format_from_sample_fmt(const char **fmt,
+                                      enum AVSampleFormat sample_fmt)
+{
+    int i;
+    struct sample_fmt_entry {
+        enum AVSampleFormat sample_fmt; const char *fmt_be, *fmt_le;
+    } sample_fmt_entries[] = {
+        { AV_SAMPLE_FMT_U8,  "u8",    "u8"    },
+        { AV_SAMPLE_FMT_S16, "s16be", "s16le" },
+        { AV_SAMPLE_FMT_S32, "s32be", "s32le" },
+        { AV_SAMPLE_FMT_FLT, "f32be", "f32le" },
+        { AV_SAMPLE_FMT_DBL, "f64be", "f64le" },
+    };
+    *fmt = NULL;
+
+    for (i = 0; i < FF_ARRAY_ELEMS(sample_fmt_entries); i++) {
+        struct sample_fmt_entry *entry = &sample_fmt_entries[i];
+        if (sample_fmt == entry->sample_fmt) {
+            *fmt = AV_NE(entry->fmt_be, entry->fmt_le);
+            return 0;
+        }
+    }
+
+    fprintf(stderr,
+            "sample format %s is not supported as output format\n",
+            av_get_sample_fmt_name(sample_fmt));
+    return -1;
+}
+
 int main(int argc, char const *argv[]) {
 
   return 0;
