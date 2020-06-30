@@ -74,7 +74,7 @@ static int output_vdo_frame(AVFrame *frame)
 
 
       // write to rawvideo file
-      fwrite(video[0], 1, video_dst_bufsize, video_dst_file);
+      fwrite(video_dst_data[0], 1, video_dst_bufsize, video_dst_file);
       return 0;
 
 }
@@ -94,12 +94,12 @@ static int decode_packet(AVCodecContext *Pack, AVPacket * pkt){
   while(response >= 0){
     response = avcodec_receive_frame(Pack, frame);
     if (response < 0){
-      if (response == AVERROR_EOF || AVERREOE(EAGAIN))
+      if (response == AVERROR_EOF || response == AVERROR(EAGAIN))
         return 0;
         // those two retuen values are special and mean there is no output
         // frame available, but there were no errors during decoding
-        fprintf(stderr, "Error during decoding (%s)\n", av_err2str(response));
-        return response;
+      fprintf(stderr, "Error during decoding (%s)\n", av_err2str(response));
+      return response;
     }
 
     // write frame data to the output file
@@ -114,8 +114,7 @@ static int decode_packet(AVCodecContext *Pack, AVPacket * pkt){
   }
   return 0;
 }
-
-int int main(int argc, char const *argv[]) {
+int main(int argc, char const *argv[]) {
 
   return 0;
 }
