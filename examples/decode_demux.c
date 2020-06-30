@@ -124,7 +124,7 @@ static int open_coded_context(int *stream_idx, AVCodecContext **dec_ctx,
       AVCodec *dec = NULL;
       AVDictionary *opts = NULL;
 
-      response = av_find_best_stream(fmt_contx, type, -1, -1, NULL, 0);
+      response = av_find_best_stream(fmt_cntx, type, -1, -1, NULL, 0);
       if (response < 0){
         fprintf(stderr, "Could not find %s stream in input file '%s'\n",
                 av_get_media_type_string(type), src_filename);
@@ -140,7 +140,7 @@ static int open_coded_context(int *stream_idx, AVCodecContext **dec_ctx,
           fprintf(stderr, "Failed to find %s codec\n",
                   av_get_media_type_string(type));
 
-        return AVERROE(EINVAL);
+        return AVERROR(EINVAL);
         }
 
         /* Allocate a codec context for the decoder */
