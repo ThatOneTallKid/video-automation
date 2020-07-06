@@ -10,7 +10,8 @@
 
 
 
-/*typedef struct VideoContext{
+
+typedef struct VideoContext{
 
 AVFormatContext *fmt_cntx;
 AVCodec *video;
@@ -22,11 +23,14 @@ int clip_cnt;
 double fps;
 int64_t curr_pts;
 int64_t seek_pts;
-}VideoContext;*/
 
 
-/*void init_video(VideoContext *vid){
-	vid->fmt_cntx = NULL;
+}VideoContext;
+
+
+
+void init_video(VideoContext *vid){
+	vid->fmt_cntx = avformat_alloc_context();
 	vid->video = NULL;
 	vid->video_codec_cntx = NULL;
 	vid->video_stream_id = -1;
@@ -37,9 +41,9 @@ int64_t seek_pts;
 	vid->curr_pts = 0;
 	vid->seek_pts = 0;
 
-}*/
+}
 
-void open_format_context(AVFormatContext *vid,char *filename){
+/*void open_format_context(AVFormatContext *vid,char *filename){
 	char buf[256];
 	int ret = avformat_open_input(&vid,filename,NULL,NULL);
 	if(ret != 0)
@@ -56,8 +60,27 @@ void open_format_context(AVFormatContext *vid,char *filename){
 		return;
 	}
 
-}
+}*/
+void open_format_context(VideoContext *context,char *filename){
+	char buf[256];
+	AVFormatContext *vid = context->fmt_cntx;
+	int ret = avformat_open_input(&vid,filename,NULL,NULL);
+	if(ret != 0)
+	{
+		fprintf(stderr, "ERROR: Could not open %s\n", filename);
+		av_strerror(ret, buf,256);
+		printf("%s\n",buf);
+		printf("%d\n", ret);
+		return ;
+	}
+	if(avformat_find_stream_info(vid, NULL) != 0)
+	{
+		fprintf(stderr, "Could not find stream information about the file %s\n", filename);
+		return;
+	}
 
+}
+/*
 void print_video_context(AVFormatContext *vid,char *filename)
 {
 	printf("format: %s\n", vid->iformat->name);
@@ -65,14 +88,25 @@ void print_video_context(AVFormatContext *vid,char *filename)
 	printf("bit rate: %ld\n", vid->bit_rate);
 	printf("start time: %ld\n", vid->start_time);
 }
+*/
+void print_video_context(VideoContext *context,char *filename)
+{	
+	AVFormatContext *vid = context->fmt_cntx;
+	printf("format: %s\n", vid->iformat->name);
+	printf("duration: %ld\n", vid->duration);
+	printf("bit rate: %ld\n", vid->bit_rate);
+	printf("start time: %ld\n", vid->start_time);
+}
+
+
 int main(int argc, char *argv[])
 {   
-	//VideoContext *vid  ;
+	VideoContext *vid = malloc(sizeof(VideoContext));
 	//char *filename ;
 	
 	//strcpy(filename, argv[1]);
-	//init_video(vid);
-	AVFormatContext *vid = avformat_alloc_context();
+	init_video(vid);
+	//AVFormatContext *vid = avformat_alloc_context();
 	av_register_all();
 	open_format_context(vid, argv[1]);
 	print_video_context(vid, argv[1]);
