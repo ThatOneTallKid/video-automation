@@ -84,7 +84,7 @@ void open_codec_context(int *stream_id,VideoContext *context, enum AVMediaType t
 	AVFormatContext *vid = context->fmt_cntx;
 	int ret ,stream_idx, refcount = 0;
 	AVCodecContext *dec_cntx ;
-	AVCodec *dec = NULL;
+	AVCodec *dec ;
 	AVStream *st = context->stream;
 	AVDictionary *opts = NULL;
 	AVCodecParameters *codecpar = NULL;
@@ -128,20 +128,21 @@ void open_codec_context(int *stream_id,VideoContext *context, enum AVMediaType t
       printf("pass 7\n" );
 
 		av_dict_set(&opts, "refcounted_frames",refcount ? "1" : "0", 0);
-		  printf("pass 8\n" );
-		if ((ret = avcodec_open2(dec_cntx, dec , &opts)) < 0){
+		  printf("pass 8\n" ); dec_cntx = avcodec_alloc_context3(dec);
+		if ((avcodec_open2(dec_cntx, dec , &opts)) < 0){
 			fprintf(stderr, "Failed to open %s codec \n",
 		 					av_get_media_type_string(type));
 
-			return;
+			return ret;
 		} else {   printf("pass 9\n" );
 			dec_cntx->time_base = vid->streams[ret]->time_base;
 			context->video = dec;
 			context->video_codec_cntx = dec_cntx;
 			context->video_stream_id =ret;
-
+      printf("pass 10\n" );
 			return;
 		}
+		 printf("pass 11\n" );
 		//*stream_id = stream_idx;
 	}
 printf("\n Success");
