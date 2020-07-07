@@ -64,7 +64,8 @@ void open_format_context(VideoContext *context,char *filename){
 		fprintf(stderr, "Could not find stream information about the file %s\n", filename);
 		return;
 	}
-
+	int64_t duration = vid->duration;
+	printf("%ld\n", (duration/AV_TIME_BASE));
 }
 // printing the info
 void print_format_context(VideoContext *context,char *filename)
@@ -76,9 +77,8 @@ void print_format_context(VideoContext *context,char *filename)
 	printf("start time: %ld\n", vid->start_time);
 }
 
-/*core dumped issue*/
-//in this function below
-//pass 6 tk ja rha h
+
+
 void open_codec_context(int *stream_id,VideoContext *context, enum AVMediaType type, char *filename)
 { printf("pass 1\n" );
 	AVFormatContext *vid = context->fmt_cntx;
@@ -199,15 +199,18 @@ int main(int argc, char *argv[])
 {
 	VideoContext *vid = malloc(sizeof(VideoContext));
 	enum AVMediaType type = AVMEDIA_TYPE_VIDEO;
-
+	//char *filename ;
+//	int *stream_id = vid->video_stream_id;
+	//strcpy(filename, argv[1]);
 	init_video(vid);
-
+	//AVFormatContext *vid = avformat_alloc_context();
 	av_register_all();
-
+	//avcodec_register_all();
 	open_format_context(vid, argv[1]);
 	print_format_context(vid, argv[1]);
-
+	//open_codec_context(&vid->video_stream_id,vid, type, argv[1]);
+	//close_video_context(vid);
 	free_video_context(&vid);
-//	print_codec_context(vid->video_codec_cntx);
+//	print_codec_context(vid->fmt_cntx);
 	return 0;
 }
