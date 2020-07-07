@@ -179,6 +179,7 @@ void free_video_context(VideoContext **vc) {
     }*/
     free(*vc);
     *vc = NULL;
+
 }
 void print_codec_context(AVCodecContext *c) {
     char buf[1024], channel_layout[100];
@@ -203,9 +204,9 @@ int main(int argc, char *argv[])
 //	int *stream_id = vid->video_stream_id;
 	//strcpy(filename, argv[1]);
 	init_video(vid);
-	//AVFormatContext *vid = avformat_alloc_context();
 	av_register_all();
-	//avcodec_register_all();
+	//AVFormatContext *vid = avformat_alloc_context();
+   	//avcodec_register_all();
 	open_format_context(vid, argv[1]);
 	print_format_context(vid, argv[1]);
 	//open_codec_context(&vid->video_stream_id,vid, type, argv[1]);
