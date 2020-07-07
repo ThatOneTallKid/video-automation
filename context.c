@@ -87,7 +87,7 @@ void open_codec_context(int *stream_id,VideoContext *context, enum AVMediaType t
 	AVCodec *dec = NULL;
 	AVStream *st = context->stream;
 	AVDictionary *opts = NULL;
-	//AVCodecParameters *plocal = NULL;
+	AVCodecParameters *codecpar = NULL;
 
   printf("pass 2\n" );
 	ret = av_find_best_stream(vid, type, -1 , -1, NULL , 0);
@@ -98,14 +98,14 @@ void open_codec_context(int *stream_id,VideoContext *context, enum AVMediaType t
 
 		return;
 	} else {
-		//int stream_id = context->video_stream_id ;
+		int stream_id = context->video_stream_id ;
 		printf("pass 3\n" );
 		stream_idx = ret;
-		st = vid->streams[*stream_id];
+		st = vid->streams[stream_id];
 		//dec_cntx = st->codec;
-		//dec_cntx = avcodec_alloc_context3(dec);
+		dec_cntx = avcodec_alloc_context3(dec);
 		printf("pass 4\n" );
-		//plocal = vid->streams[ret]->codecpar;
+		//int plocal = vid->streams[ret]->codecpar;
 		//dec = avcodec_find_decoder(plocal->codec_id);
 		printf("pass 5\n" );
 		//if(!dec){
@@ -117,20 +117,24 @@ void open_codec_context(int *stream_id,VideoContext *context, enum AVMediaType t
 		dec_cntx = avcodec_alloc_context3(dec);
 		if(!dec_cntx){
 			fprintf(stderr, "Failed to allocate the %s codec context \n", av_get_media_type_string(type));
-			return;
+			return AVERROR(ENOMEM);
 		}
 
-		if((ret = avcodec_parameters_to_context(dec_cntx, st->codecpar)) < 0){
+
+		if(avcodec_parameters_to_context(dec_cntx, vid->streams[ret]->codecpar) < 0){
 			fprintf(stderr, "Failed to copy %s codec parameters to decoder centext \n", av_get_media_type_string(type));
-			return;
-		}
+			return;}
+
+      printf("pass 7\n" );
+
 		av_dict_set(&opts, "refcounted_frames",refcount ? "1" : "0", 0);
+		  printf("pass 8\n" );
 		if ((ret = avcodec_open2(dec_cntx, dec , &opts)) < 0){
 			fprintf(stderr, "Failed to open %s codec \n",
 		 					av_get_media_type_string(type));
 
 			return;
-		} else {
+		} else {   printf("pass 9\n" );
 			dec_cntx->time_base = vid->streams[ret]->time_base;
 			context->video = dec;
 			context->video_codec_cntx = dec_cntx;
@@ -208,7 +212,7 @@ int main(int argc, char *argv[])
 	//avcodec_register_all();
 	open_format_context(vid, argv[1]);
 	print_format_context(vid, argv[1]);
-	//open_codec_context(&vid->video_stream_id,vid, type, argv[1]);
+	open_codec_context(&vid->video_stream_id,vid, type, argv[1]);
 	//close_video_context(vid);
 	free_video_context(&vid);
 //	print_codec_context(vid->fmt_cntx);
